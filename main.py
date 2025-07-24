@@ -1,3 +1,5 @@
+# This project is licensed under GPL v3.
+
 import disnake
 import json
 import os
