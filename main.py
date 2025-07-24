@@ -2,7 +2,7 @@
 
 import disnake
 import json
-import os, sys
+import os, sys, subprocess
 import asyncio
 import traceback
 import datetime
@@ -121,12 +121,22 @@ async def reboot(ctx):
             errEmbed.title = "Перезагрузка..."
             await interaction.response.edit_message(embed=errEmbed, view=None)
 
+            print("DEBUG: Был вызван перезапуск")
+
             await client.change_presence(
                 activity=disnake.Activity(
                     type=disnake.ActivityType.watching, name="перезапуск"
                 )
             )
+            if os.path.exists(".git"):
+                try:
+                    subprocess.run(["git", "pull"], check=True)
+                    print("DEBUG: Автообновление успешно.")
+                except subprocess.CalledProcessError as e:
+                    print(f"DEBUG: Ошибка: {e}")
+
             await asyncio.sleep(5)
+            await client.close()
             os.execv(sys.executable, [sys.executable] + sys.argv)
 
         @disnake.ui.button(label="Нет", style=disnake.ButtonStyle.red)
