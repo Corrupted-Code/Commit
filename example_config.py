@@ -1,3 +1,4 @@
 TOKEN = ""
 PREFIX = ""
 VERSION = ""
+OWNER_IDS = []

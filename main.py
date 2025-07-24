@@ -2,11 +2,14 @@
 
 import disnake
 import json
-import os
+import os, sys
 import asyncio
+import traceback
+import datetime
+import uuid
+
 from disnake.ext import commands
 from disnake.ui import View, Button
-from datetime import timedelta
 
 import config as cfg
 
@@ -17,6 +20,7 @@ client.remove_command("help")
 
 @client.event
 async def on_guild_join(guild: disnake.Guild):
+    print("DEBUG: Bot has been added to a new guild:", guild.name)
     ensure_defaults()
 
 
@@ -83,13 +87,92 @@ async def on_ready():
                 client.loop.create_task(check_inactivity_thread(int(tid)))
 
 
+@client.command()
+async def reboot(ctx):
+    errEmbed = disnake.Embed(title="Ошибка", color=disnake.Color.red())
+    user_avatar = (
+        ctx.author.display_avatar.url
+        if ctx.author.display_avatar
+        else client.user.display_avatar.url
+    )
+    errEmbed.set_footer(text=f"{ctx.author.name}", icon_url=user_avatar)
+
+    if ctx.author.id not in cfg.OWNER_IDS:
+        errEmbed.description = "У вас нет прав на перезагрузку бота."
+        return await ctx.send(embed=errEmbed, delete_after=10)
+
+    confirmEmbed = disnake.Embed(
+        title="Вы уверены что хотите перезапустить бота?", color=disnake.Color.orange()
+    )
+    confirmEmbed.set_footer(text=f"{ctx.author.name}", icon_url=user_avatar)
+
+    class ConfirmView(View):
+        def __init__(self):
+            super().__init__(timeout=30)
+
+        @disnake.ui.button(label="Да", style=disnake.ButtonStyle.green)
+        async def yes(self, button: Button, interaction: disnake.MessageInteraction):
+            if interaction.author.id not in cfg.OWNER_IDS:
+                errEmbed.description = "У вас нет прав на выполнение этого действия."
+                return await interaction.response.send_message(
+                    embed=errEmbed, ephemeral=True
+                )
+
+            errEmbed.title = "Перезагрузка..."
+            await interaction.response.edit_message(embed=errEmbed, view=None)
+
+            await client.change_presence(
+                activity=disnake.Activity(
+                    type=disnake.ActivityType.watching, name="перезапуск"
+                )
+            )
+            await asyncio.sleep(5)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+
+        @disnake.ui.button(label="Нет", style=disnake.ButtonStyle.red)
+        async def no(self, button: Button, interaction: disnake.MessageInteraction):
+            if interaction.author.id not in cfg.OWNER_IDS:
+                errEmbed.description = "У вас нет прав на выполнение этого действия."
+                return await interaction.response.send_message(
+                    embed=errEmbed, ephemeral=True
+                )
+
+            await interaction.message.delete()
+            try:
+                await ctx.message.delete()
+            except:
+                pass
+
+        async def on_timeout(self):
+            try:
+                errEmbed.title = "⏳ Время ожидания истекло."
+                await message.edit(embed=errEmbed, view=None)
+            except:
+                pass
+
+    message = await ctx.send(embed=confirmEmbed, view=ConfirmView())
+
 @client.slash_command(
     name="forum",
     description="Управление форумами",
     default_member_permissions=disnake.Permissions(manage_channels=True),
 )
 async def forum(interaction: disnake.CommandInteraction):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red()
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
     pass
+
 
 
 @client.slash_command(name="about", description="Информация о боте")
@@ -439,7 +522,9 @@ async def on_thread_create(thread: disnake.Thread):
         await thread.send(embed=embed)
 
     close_after = data[sid].get("closeAfter", 1)
-    end_time = (disnake.utils.utcnow() + timedelta(hours=close_after)).isoformat()
+    end_time = (
+        disnake.utils.utcnow() + datetime.timedelta(hours=close_after)
+    ).isoformat()
 
     if "threads" not in data[sid]:
         data[sid]["threads"] = {}
@@ -510,7 +595,7 @@ async def on_message(message: disnake.Message):
         if message.author.id != author_id:
             close_after = data[sid].get("closeAfter", 1)
             data[sid]["threads"][tid]["end_time"] = (
-                disnake.utils.utcnow() + timedelta(hours=close_after)
+                disnake.utils.utcnow() + datetime.timedelta(hours=close_after)
             ).isoformat()
             save_data(data)
 
@@ -559,6 +644,61 @@ async def close_thread(ctx: commands.Context):
     else:
         errEmbed.description = "У вас нет прав закрывать эту ветку."
         await ctx.send(embed=errEmbed, delete_after=40)
+
+
+@client.event
+async def on_slash_command_error(
+    inter: disnake.ApplicationCommandInteraction, error: Exception
+):
+    errEmbed = disnake.Embed(title="Ошибка", color=disnake.Color.red())
+    user_avatar = (
+        inter.author.display_avatar.url
+        if inter.author.display_avatar
+        else client.user.display_avatar.url
+    )
+    errEmbed.set_footer(text=f"{inter.author.name}", icon_url=user_avatar)
+
+    if isinstance(error, commands.NoPrivateMessage):
+        errEmbed.description = "Эта команда недоступна в личных сообщениях."
+        return await inter.response.send_message(embed=errEmbed, ephemeral=True)
+
+    if isinstance(error, disnake.Forbidden):
+        errEmbed.description = "У меня нет прав для выполнения этого действия."
+        return await inter.response.send_message(embed=errEmbed, ephemeral=True)
+
+    if isinstance(error, commands.MissingPermissions):
+        errEmbed.description = "У вас нет прав для использования этой команды."
+        return await inter.response.send_message(embed=errEmbed, ephemeral=True)
+
+    if isinstance(error, commands.CheckFailure):
+        errEmbed.description = "Вы не можете использовать эту команду здесь."
+        return await inter.response.send_message(embed=errEmbed, ephemeral=True)
+
+    error_id = str(uuid.uuid4())[:8]
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"error_{error_id}_{date_str}.log"
+
+    os.makedirs("logs", exist_ok=True)
+    full_path = os.path.join("logs", filename)
+
+    with open(full_path, "w", encoding="utf-8") as f:
+        f.write(f"=== Ошибка {error_id} ({date_str}) ===\n")
+        f.write(f"Пользователь: {inter.author} (ID: {inter.author.id})\n")
+        f.write(
+            f"Гильдия: {inter.guild.name if inter.guild else 'DM'} (ID: {inter.guild.id if inter.guild else 'DM'})\n"
+        )
+        f.write(f"Команда: {inter.application_command.name}\n\n")
+        traceback.print_exception(type(error), error, error.__traceback__, file=f)
+
+    print(
+        f"[ERROR] ID={error_id} | {type(error).__name__}: {error} (сохранено в {full_path})"
+    )
+
+    errEmbed.description = f"Произошла неизвестная ошибка.\nСообщите UUID разработчику.\n\nUUID: `{error_id}"
+    try:
+        await inter.response.send_message(embed=errEmbed, ephemeral=True)
+    except disnake.InteractionResponded:
+        await inter.followup.send(embed=errEmbed, ephemeral=True)
 
 
 client.run(cfg.TOKEN)
