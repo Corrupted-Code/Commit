@@ -152,6 +152,7 @@ async def reboot(ctx):
 
     message = await ctx.send(embed=confirmEmbed, view=ConfirmView())
 
+
 @client.slash_command(
     name="forum",
     description="Управление форумами",
@@ -162,7 +163,7 @@ async def forum(interaction: disnake.CommandInteraction):
         errEmbed = disnake.Embed(
             title="Ошибка",
             description="Эта команда недоступна в личных сообщениях.",
-            color=disnake.Color.red()
+            color=disnake.Color.red(),
         )
         user_avatar = (
             interaction.author.display_avatar.url
@@ -172,7 +173,6 @@ async def forum(interaction: disnake.CommandInteraction):
         errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
         return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
     pass
-
 
 
 @client.slash_command(name="about", description="Информация о боте")
@@ -583,7 +583,12 @@ async def check_inactivity_thread(thread_id: int):
 
 @client.event
 async def on_message(message: disnake.Message):
-    if message.author.bot or not isinstance(message.channel, disnake.Thread):
+    if message.author.bot:
+        return
+
+    await client.process_commands()
+
+    if not isinstance(message.channel, disnake.Thread):
         return
 
     data = load_data()
