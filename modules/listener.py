@@ -3,12 +3,13 @@ import datetime
 
 from disnake.ext import commands
 
+
 class ListenerModule(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     ### Triggers when bot is ready ###
-    
+
     @commands.Cog.listener()
     async def on_ready(self):
         self.bot.ensure_defaults()
@@ -25,7 +26,9 @@ class ListenerModule(commands.Cog):
         for sid, d in data.items():
             if "threads" in d:
                 for tid in list(d["threads"].keys()):
-                    self.bot.loop.create_task(self.bot.check_inactivity_thread(int(tid)))
+                    self.bot.loop.create_task(
+                        self.bot.check_inactivity_thread(int(tid))
+                    )
 
     ### Triggers when bot gets added to server ###
 
@@ -84,7 +87,8 @@ class ListenerModule(commands.Cog):
                 description=welcomeFormatted, color=disnake.Color.purple()
             )
             embed.set_footer(
-                text=f"Made with ❤️ by PrivateKey2", icon_url=self.bot.user.display_avatar.url
+                text=f"Made with ❤️ by PrivateKey2",
+                icon_url=self.bot.user.display_avatar.url,
             )
             await thread.send(embed=embed)
 
@@ -102,6 +106,7 @@ class ListenerModule(commands.Cog):
         self.bot.save_data(data)
 
         self.bot.loop.create_task(self.bot.check_inactivity_thread(thread.id))
+
 
 def setup(bot):
     bot.add_cog(ListenerModule(bot))

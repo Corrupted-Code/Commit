@@ -4,6 +4,7 @@ import platform, time
 from disnake.ext import commands
 from config import VERSION
 
+
 class InfoModule(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -18,7 +19,8 @@ class InfoModule(commands.Cog):
             color=disnake.Color.purple(),
         )
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2", icon_url=self.bot.user.display_avatar.url
+            text=f"Made with ❤️ by PrivateKey2",
+            icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -32,25 +34,29 @@ class InfoModule(commands.Cog):
 
         ping = round(self.bot.latency * 1000)
         guild_count = len(self.bot.guilds)
-        user_count = len(set(member.id for guild in self.bot.guilds for member in guild.members))
+        user_count = len(
+            set(member.id for guild in self.bot.guilds for member in guild.members)
+        )
         disnake_version = disnake.__version__
         python_version = platform.python_version()
         os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
 
         embed_color = (
-            disnake.Color.green() if ping < 100 else
-            disnake.Color.yellow() if ping < 250 else
-            disnake.Color.red()
+            disnake.Color.green()
+            if ping < 100
+            else disnake.Color.yellow() if ping < 250 else disnake.Color.red()
         )
 
         embed = disnake.Embed(
             title="Информация о боте",
             color=embed_color,
-            timestamp=disnake.utils.utcnow()
+            timestamp=disnake.utils.utcnow(),
         )
 
         embed.add_field(name="📡 Пинг", value=f"`{ping} ms`", inline=True)
-        embed.add_field(name="⏳ Аптайм", value=f"`{hours}h {minutes}m {seconds}s`", inline=True)
+        embed.add_field(
+            name="⏳ Аптайм", value=f"`{hours}h {minutes}m {seconds}s`", inline=True
+        )
         embed.add_field(name="", value="", inline=False)
         embed.add_field(name="🛠️ Серверов", value=f"`{guild_count}`", inline=True)
         embed.add_field(name="👥 Пользователей", value=f"`{user_count}`", inline=True)
@@ -60,9 +66,9 @@ class InfoModule(commands.Cog):
         embed.add_field(name="", value="", inline=False)
         embed.add_field(name="💻 ОС", value=f"`{os_info}`", inline=False)
 
-
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2", icon_url=self.bot.user.display_avatar.url
+            text=f"Made with ❤️ by PrivateKey2",
+            icon_url=self.bot.user.display_avatar.url,
         )
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -78,9 +84,11 @@ class InfoModule(commands.Cog):
         )
         embed.add_field(name="Версия", value=VERSION, inline=True)
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2", icon_url=self.bot.user.display_avatar.url
+            text=f"Made with ❤️ by PrivateKey2",
+            icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 def setup(bot):
     bot.add_cog(InfoModule(bot))

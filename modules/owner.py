@@ -10,12 +10,15 @@ from config import OWNER_IDS
 
 ### Check if user is bot owner ###
 
+
 def is_bot_owner():
     def predicate(ctx):
         if ctx.author.id not in OWNER_IDS:
             raise em.NotOwner("Вы не разработчик бота.")
         return True
+
     return commands.check(predicate)
+
 
 class OwnerModule(commands.Cog):
     def __init__(self, bot):
@@ -40,7 +43,8 @@ class OwnerModule(commands.Cog):
             return await ctx.send(embed=errEmbed, delete_after=10)
 
         confirmEmbed = disnake.Embed(
-            title="Вы уверены что хотите перезапустить бота?", color=disnake.Color.orange()
+            title="Вы уверены что хотите перезапустить бота?",
+            color=disnake.Color.orange(),
         )
         confirmEmbed.set_footer(text=f"{ctx.author.name}", icon_url=user_avatar)
 
@@ -50,9 +54,13 @@ class OwnerModule(commands.Cog):
 
             @disnake.ui.button(label="Да", style=disnake.ButtonStyle.green)
             # @is_bot_owner() ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
-            async def yes(self, button: Button, interaction: disnake.MessageInteraction):
+            async def yes(
+                self, button: Button, interaction: disnake.MessageInteraction
+            ):
                 if interaction.author.id not in OWNER_IDS:
-                    errEmbed.description = "У вас нет прав на выполнение этого действия."
+                    errEmbed.description = (
+                        "У вас нет прав на выполнение этого действия."
+                    )
                     return await interaction.response.send_message(
                         embed=errEmbed, ephemeral=True
                     )
@@ -81,10 +89,12 @@ class OwnerModule(commands.Cog):
             # @is_bot_owner() ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
             async def no(self, button: Button, interaction: disnake.MessageInteraction):
                 if interaction.author.id not in OWNER_IDS:
-                    errEmbed.description = "У вас нет прав на выполнение этого действия."
+                    errEmbed.description = (
+                        "У вас нет прав на выполнение этого действия."
+                    )
                     return await interaction.response.send_message(
                         embed=errEmbed, ephemeral=True
-                )
+                    )
 
                 await interaction.message.delete()
                 try:
@@ -100,6 +110,7 @@ class OwnerModule(commands.Cog):
                     pass
 
         message = await ctx.send(embed=confirmEmbed, view=ConfirmView())
+
 
 def setup(bot):
     bot.add_cog(OwnerModule(bot))

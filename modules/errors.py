@@ -5,8 +5,10 @@ import uuid, traceback, datetime, os
 
 from disnake.ext import commands
 
+
 class NotOwner(commands.CheckFailure):
     pass
+
 
 class ErrorsModule(commands.Cog):
     def __init__(self, bot):
@@ -26,11 +28,13 @@ class ErrorsModule(commands.Cog):
         if isinstance(error, NotOwner):
             errEmbed.description = "Вы не разработчик бота."
             return await ctx.reply(embed=errEmbed, delete_after=40)
-        
+
     ### Triggers when an error occurs in a slash command ###
 
     @commands.Cog.listener()
-    async def on_slash_command_error(self, inter: disnake.ApplicationCommandInteraction, error: Exception):
+    async def on_slash_command_error(
+        self, inter: disnake.ApplicationCommandInteraction, error: Exception
+    ):
 
         errEmbed = disnake.Embed(title="Ошибка", color=disnake.Color.red())
         user_avatar = (
@@ -81,6 +85,7 @@ class ErrorsModule(commands.Cog):
             await inter.response.send_message(embed=errEmbed, ephemeral=True)
         except disnake.InteractionResponded:
             await inter.followup.send(embed=errEmbed, ephemeral=True)
+
 
 def setup(bot):
     bot.add_cog(ErrorsModule(bot))

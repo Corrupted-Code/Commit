@@ -16,6 +16,7 @@ client.remove_command("help")
 
 start_time = time.time()
 
+
 def load_data():
     if not os.path.exists(DATA_FILE):
         return {}
@@ -139,6 +140,7 @@ async def check_inactivity_thread(thread_id: int):
             del data[sid]["threads"][str(thread_id)]
             save_data(data)
             return
+
 
 # Setup functions and vars
 client.load_data = load_data
