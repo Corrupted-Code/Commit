@@ -10,5 +10,5 @@ This project is licensed under the GNU General Public License v3.
 
 # TODO: 
 - [ ] Make better README
-- [ x ] Make code readable
+- [x] Make code readable
 - [  ] Use DB instead of json
