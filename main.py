@@ -586,23 +586,19 @@ async def on_message(message: disnake.Message):
     if message.author.bot:
         return
 
-    await client.process_commands()
+    if isinstance(message.channel, disnake.Thread):
+        data = load_data()
+        sid = str(message.guild.id)
+        tid = str(message.channel.id)
 
-    if not isinstance(message.channel, disnake.Thread):
-        return
-
-    data = load_data()
-    sid = str(message.guild.id)
-    tid = str(message.channel.id)
-
-    if sid in data and "threads" in data[sid] and tid in data[sid]["threads"]:
-        author_id = data[sid]["threads"][tid]["author"]
-        if message.author.id != author_id:
-            close_after = data[sid].get("closeAfter", 1)
-            data[sid]["threads"][tid]["end_time"] = (
-                disnake.utils.utcnow() + datetime.timedelta(hours=close_after)
-            ).isoformat()
-            save_data(data)
+        if sid in data and "threads" in data[sid] and tid in data[sid]["threads"]:
+            author_id = data[sid]["threads"][tid]["author"]
+            if message.author.id != author_id:
+                close_after = data[sid].get("closeAfter", 1)
+                data[sid]["threads"][tid]["end_time"] = (
+                    disnake.utils.utcnow() + datetime.timedelta(hours=close_after)
+                ).isoformat()
+                save_data(data)
 
     await client.process_commands(message)
 
