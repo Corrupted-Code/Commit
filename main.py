@@ -169,19 +169,6 @@ async def reboot(ctx):
     default_member_permissions=disnake.Permissions(manage_channels=True),
 )
 async def forum(interaction: disnake.CommandInteraction):
-    if isinstance(interaction.channel, disnake.DMChannel):
-        errEmbed = disnake.Embed(
-            title="Ошибка",
-            description="Эта команда недоступна в личных сообщениях.",
-            color=disnake.Color.red(),
-        )
-        user_avatar = (
-            interaction.author.display_avatar.url
-            if interaction.author.display_avatar
-            else client.user.display_avatar.url
-        )
-        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
-        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
     pass
 
 
@@ -217,6 +204,20 @@ async def forum_add(
     interaction: disnake.CommandInteraction,
     name: str = commands.Param(description="Название форума"),
 ):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     await interaction.response.defer(ephemeral=True)
     forum = await interaction.guild.create_forum_channel(name)
     data = load_data()
@@ -250,6 +251,20 @@ async def forum_welcome_toggle(
     interaction: disnake.CommandInteraction,
     value: bool = commands.Param(description="True - включить, False - выключить"),
 ):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     await interaction.response.defer(ephemeral=True)
     data = load_data()
     sid = str(interaction.guild.id)
@@ -287,6 +302,20 @@ async def set_config(
     interaction: disnake.CommandInteraction,
     hours: int = commands.Param(description="Время в часах."),
 ):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     await interaction.response.defer(ephemeral=True)
     data = load_data()
     sid = str(interaction.guild.id)
@@ -315,6 +344,20 @@ async def set_config(
 
 @forum.sub_command(name="message", description="Установить приветственное сообщение")
 async def forum_welcome_message(interaction: disnake.CommandInteraction):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     class WelcomeModal(disnake.ui.Modal):
         def __init__(self):
             components = [
@@ -363,6 +406,20 @@ async def forum_delete_closed(
     interaction: disnake.CommandInteraction,
     value: bool = commands.Param(description="True или False"),
 ):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     await interaction.response.defer(ephemeral=True)
     data = load_data()
     sid = str(interaction.guild.id)
@@ -400,6 +457,20 @@ async def forum_rem(
     interaction: disnake.CommandInteraction,
     forum: str = commands.Param(description="Удаляемый форум", autocomplete=True),
 ):
+    if isinstance(interaction.channel, disnake.DMChannel):
+        errEmbed = disnake.Embed(
+            title="Ошибка",
+            description="Эта команда недоступна в личных сообщениях.",
+            color=disnake.Color.red(),
+        )
+        user_avatar = (
+            interaction.author.display_avatar.url
+            if interaction.author.display_avatar
+            else client.user.display_avatar.url
+        )
+        errEmbed.set_footer(text=f"{interaction.author.name}", icon_url=user_avatar)
+        return await interaction.response.send_message(embed=errEmbed, ephemeral=True)
+    
     errEmbed = disnake.Embed(
         title="Упс!",
         color=disnake.Color.red(),
@@ -453,6 +524,9 @@ async def forum_rem(
 async def removeforum_autocomplete(
     inter: disnake.ApplicationCommandInteraction, user_input: str
 ):
+    if isinstance(inter.channel, disnake.DMChannel):
+        return
+    
     data = load_data()
     sid = str(inter.guild.id)
     results = []
