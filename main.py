@@ -135,8 +135,15 @@ async def reboot(ctx):
                 except subprocess.CalledProcessError as e:
                     print(f"DEBUG: Ошибка: {e}")
 
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
+
+            print("DEBUG: Закрытие сессии...")
+
+            await client.http.close()
             await client.close()
+
+            await asyncio.sleep(5)
+            print("DEBUG: Запуск бота...")
             os.execv(sys.executable, [sys.executable] + sys.argv)
 
         @disnake.ui.button(label="Нет", style=disnake.ButtonStyle.red)
