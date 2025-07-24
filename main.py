@@ -12,9 +12,11 @@ client = commands.Bot(command_prefix=cfg.PREFIX, intents=disnake.Intents.all())
 DATA_FILE = "forums.json"
 client.remove_command("help")
 
+
 @client.event
 async def on_guild_join(guild: disnake.Guild):
     ensure_defaults()
+
 
 def load_data():
     if not os.path.exists(DATA_FILE):
@@ -50,7 +52,9 @@ def ensure_defaults():
                 data[sid]["closeAfter"] = 1
                 updated = True
             if "welcomeMessage" not in data[sid]:
-                data[sid]["welcomeMessage"] = "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}"
+                data[sid][
+                    "welcomeMessage"
+                ] = "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}"
                 updated = True
             if "delete_closed" not in data[sid]:
                 data[sid]["delete_closed"] = True
@@ -59,12 +63,13 @@ def ensure_defaults():
         save_data(data)
 
 
-
 @client.event
 async def on_ready():
     ensure_defaults()
     await client.change_presence(
-        activity=disnake.Activity(type=disnake.ActivityType.watching, name="за форумами")
+        activity=disnake.Activity(
+            type=disnake.ActivityType.watching, name="за форумами"
+        )
     )
     print(f"Logged in as {client.user} (ID: {client.user.id})")
     print("------")
@@ -74,7 +79,6 @@ async def on_ready():
         if "threads" in d:
             for tid in list(d["threads"].keys()):
                 client.loop.create_task(check_inactivity_thread(int(tid)))
-
 
 
 @client.slash_command(
@@ -94,8 +98,11 @@ async def about(interaction: disnake.CommandInteraction):
         color=disnake.Color.purple(),
     )
     embed.add_field(name="Версия", value=cfg.VERSION, inline=True)
-    embed.set_footer(text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url)
+    embed.set_footer(
+        text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url
+    )
     await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 @client.slash_command(name="help", description="Информация о боте")
 async def about(interaction: disnake.CommandInteraction):
@@ -104,8 +111,11 @@ async def about(interaction: disnake.CommandInteraction):
         description="``!close`` - для закрытия вопроса/ветки в форуме которым я управляю.\n\nДля админов выберите все слеш команды от меня.",
         color=disnake.Color.purple(),
     )
-    embed.set_footer(text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url)
+    embed.set_footer(
+        text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url
+    )
     await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 @forum.sub_command(name="add", description="Создать новый форум")
 async def forum_add(
@@ -117,7 +127,11 @@ async def forum_add(
     data = load_data()
     sid = str(interaction.guild.id)
     if sid not in data:
-        data[sid] = {"forumchannels": [], "closeAfter": 1, "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}"}
+        data[sid] = {
+            "forumchannels": [],
+            "closeAfter": 1,
+            "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
+        }
     data[sid]["forumchannels"].append(forum.id)
     save_data(data)
     respEmbed = disnake.Embed(
@@ -133,10 +147,13 @@ async def forum_add(
     respEmbed.set_footer(text=f"{interaction.author.name}", icon_url=author_avatar)
     await interaction.edit_original_message(embed=respEmbed)
 
-@forum.sub_command(name="toggle_message", description="Включить или выключить приветственное сообщение")
+
+@forum.sub_command(
+    name="toggle_message", description="Включить или выключить приветственное сообщение"
+)
 async def forum_welcome_toggle(
     interaction: disnake.CommandInteraction,
-    value: bool = commands.Param(description="True - включить, False - выключить")
+    value: bool = commands.Param(description="True - включить, False - выключить"),
 ):
     await interaction.response.defer(ephemeral=True)
     data = load_data()
@@ -148,7 +165,7 @@ async def forum_welcome_toggle(
             "closeAfter": 1,
             "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
             "delete_closed": False,
-            "welcome_enabled": value
+            "welcome_enabled": value,
         }
     else:
         data[sid]["welcome_enabled"] = value
@@ -170,9 +187,7 @@ async def forum_welcome_toggle(
     await interaction.edit_original_message(embed=respEmbed)
 
 
-@forum.sub_command(
-    name="close_after", description="Установить время закрытия до ветки"
-)
+@forum.sub_command(name="close_after", description="Установить время закрытия до ветки")
 async def set_config(
     interaction: disnake.CommandInteraction,
     hours: int = commands.Param(description="Время в часах."),
@@ -181,7 +196,11 @@ async def set_config(
     data = load_data()
     sid = str(interaction.guild.id)
     if sid not in data:
-        data[sid] = {"forumchannels": [], "closeAfter": hours, "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}"}
+        data[sid] = {
+            "forumchannels": [],
+            "closeAfter": hours,
+            "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
+        }
     else:
         data[sid]["closeAfter"] = hours
     save_data(data)
@@ -219,7 +238,11 @@ async def forum_welcome_message(interaction: disnake.CommandInteraction):
             data = load_data()
             sid = str(modal_inter.guild.id)
             if sid not in data:
-                data[sid] = {"forumchannels": [], "closeAfter": 1, "welcomeMessage": msg}
+                data[sid] = {
+                    "forumchannels": [],
+                    "closeAfter": 1,
+                    "welcomeMessage": msg,
+                }
             else:
                 data[sid]["welcomeMessage"] = msg
             save_data(data)
@@ -233,17 +256,17 @@ async def forum_welcome_message(interaction: disnake.CommandInteraction):
                 if interaction.author.display_avatar
                 else client.user.display_avatar.url
             )
-            await modal_inter.response.send_message(
-                embed=respEmbed, ephemeral=True
-            )
+            await modal_inter.response.send_message(embed=respEmbed, ephemeral=True)
 
     await interaction.response.send_modal(modal=WelcomeModal())
 
 
-@forum.sub_command(name="deleteclosed", description="Включить/выключить кнопку удаления закрытых веток")
+@forum.sub_command(
+    name="deleteclosed", description="Включить/выключить кнопку удаления закрытых веток"
+)
 async def forum_delete_closed(
     interaction: disnake.CommandInteraction,
-    value: bool = commands.Param(description="True или False")
+    value: bool = commands.Param(description="True или False"),
 ):
     await interaction.response.defer(ephemeral=True)
     data = load_data()
@@ -253,12 +276,12 @@ async def forum_delete_closed(
             "forumchannels": [],
             "closeAfter": 1,
             "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
-            "delete_closed": value
+            "delete_closed": value,
         }
     else:
         data[sid]["delete_closed"] = value
     save_data(data)
-    if value: 
+    if value:
         value = "включено"
     else:
         value = "выключено"
@@ -383,6 +406,7 @@ async def send_close_embed(thread, closer, closer_type="автоматическ
 
     return True
 
+
 @client.event
 async def on_thread_create(thread: disnake.Thread):
     data = load_data()
@@ -404,8 +428,12 @@ async def on_thread_create(thread: disnake.Thread):
             thread_id=thread.id,
             thread_name=thread.name,
         )
-        embed = disnake.Embed(description=welcomeFormatted, color=disnake.Color.purple())
-        embed.set_footer(text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url)
+        embed = disnake.Embed(
+            description=welcomeFormatted, color=disnake.Color.purple()
+        )
+        embed.set_footer(
+            text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url
+        )
         await thread.send(embed=embed)
 
     close_after = data[sid].get("closeAfter", 1)
@@ -415,11 +443,12 @@ async def on_thread_create(thread: disnake.Thread):
         data[sid]["threads"] = {}
     data[sid]["threads"][str(thread.id)] = {
         "author": thread.owner_id,
-        "end_time": end_time
+        "end_time": end_time,
     }
     save_data(data)
 
     client.loop.create_task(check_inactivity_thread(thread.id))
+
 
 async def check_inactivity_thread(thread_id: int):
     await asyncio.sleep(5)
@@ -450,7 +479,9 @@ async def check_inactivity_thread(thread_id: int):
             return
 
         now = disnake.utils.utcnow()
-        end_time = disnake.utils.parse_time(data[sid]["threads"][str(thread_id)]["end_time"])
+        end_time = disnake.utils.parse_time(
+            data[sid]["threads"][str(thread_id)]["end_time"]
+        )
 
         if now >= end_time:
             try:
@@ -461,7 +492,6 @@ async def check_inactivity_thread(thread_id: int):
             del data[sid]["threads"][str(thread_id)]
             save_data(data)
             return
-
 
 
 @client.event
@@ -483,7 +513,6 @@ async def on_message(message: disnake.Message):
             save_data(data)
 
     await client.process_commands(message)
-
 
 
 @client.command(name="close")
@@ -508,7 +537,8 @@ async def close_thread(ctx: commands.Context):
     if (
         sid not in data
         or "forumchannels" not in data[sid]
-        or str(ctx.channel.parent_id) not in [str(f) for f in data[sid]["forumchannels"]]
+        or str(ctx.channel.parent_id)
+        not in [str(f) for f in data[sid]["forumchannels"]]
     ):
         errEmbed.description = "Невозможно продолжить тут."
         return await ctx.send(embed=errEmbed, delete_after=40)
@@ -527,7 +557,6 @@ async def close_thread(ctx: commands.Context):
     else:
         errEmbed.description = "У вас нет прав закрывать эту ветку."
         await ctx.send(embed=errEmbed, delete_after=40)
-
 
 
 client.run(cfg.TOKEN)
