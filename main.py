@@ -7,6 +7,8 @@ import asyncio
 import traceback
 import datetime
 import uuid
+import platform
+import time
 
 from disnake.ext import commands
 from disnake.ui import View, Button
@@ -17,6 +19,7 @@ client = commands.Bot(command_prefix=cfg.PREFIX, intents=disnake.Intents.all())
 DATA_FILE = "forums.json"
 client.remove_command("help")
 
+start_time = time.time()
 
 @client.event
 async def on_guild_join(guild: disnake.Guild):
@@ -197,6 +200,52 @@ async def about(interaction: disnake.CommandInteraction):
         text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url
     )
     await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@client.slash_command(name="info", description="Информация о боте")
+async def info(interaction: disnake.CommandInteraction):
+    uptime_seconds = int(time.time() - start_time)
+    hours, remainder = divmod(uptime_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    ping = round(client.latency * 1000)
+    guild_count = len(client.guilds)
+    user_count = len(set(member.id for guild in client.guilds for member in guild.members))
+    disnake_version = disnake.__version__
+    python_version = platform.python_version()
+    os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
+
+    embed_color = (
+        disnake.Color.green() if ping < 100 else
+        disnake.Color.yellow() if ping < 250 else
+        disnake.Color.red()
+    )
+
+    embed = disnake.Embed(
+        title="Информация о боте",
+        color=embed_color,
+        timestamp=disnake.utils.utcnow()
+    )
+
+    embed.add_field(name="📡 Пинг", value=f"`{ping} ms`", inline=True)
+    embed.add_field(name="⏳ Аптайм", value=f"`{hours}h {minutes}m {seconds}s`", inline=True)
+    embed.add_field(name="", value="", inline=False)
+    embed.add_field(name="🛠️ Серверов", value=f"`{guild_count}`", inline=True)
+    embed.add_field(name="👥 Пользователей", value=f"`{user_count}`", inline=True)
+    embed.add_field(name="", value="", inline=False)
+    embed.add_field(name="📦 Disnake", value=f"`v{disnake_version}`", inline=True)
+    embed.add_field(name="🐍 Python", value=f"`v{python_version}`", inline=True)
+    embed.add_field(name="", value="", inline=False)
+    embed.add_field(name="💻 ОС", value=f"`{os_info}`", inline=False)
+
+
+    embed.set_footer(
+        text=f"Made with ❤️ by PrivateKey2", icon_url=client.user.display_avatar.url
+    )
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
 
 
 @forum.sub_command(name="add", description="Создать новый форум")
