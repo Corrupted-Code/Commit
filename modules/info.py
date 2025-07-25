@@ -1,12 +1,12 @@
 """GPL-3.0 License"""
+import os
 import platform
 import time
 
 import disnake
 from disnake.ext import commands
 
-from config import VERSION
-
+VERSION = os.getenv("VERSION", "Fail")
 
 class InfoModule(commands.Cog):
     """Cog for providing information about the bot"""

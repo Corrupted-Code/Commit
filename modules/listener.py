@@ -106,6 +106,7 @@ class ListenerModule(commands.Cog):
         self.bot.save_data(data)
 
         self.bot.loop.create_task(self.bot.check_inactivity_thread(thread.id))
+        
 
 
 def setup(bot):

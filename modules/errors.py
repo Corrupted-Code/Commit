@@ -36,12 +36,42 @@ class ErrorsModule(commands.Cog):
 
             err_embed.description = "Вы не разработчик бота."
             return await ctx.reply(embed=err_embed, delete_after=40)
+        
+        error_id = str(uuid.uuid4())[:8]
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"error_{error_id}_{date_str}.log"
+
+        os.makedirs("logs", exist_ok=True)
+        full_path = os.path.join("logs", filename)
+
+        def ifdm(inter):
+            return inter.guild.name if inter.guild else 'DM'
+
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(f"=== Ошибка {error_id} ({date_str}) ===\n")
+            f.write(f"Пользователь: {ctx.author} (ID: {ctx.author.id})\n")
+            f.write(
+                f"Гильдия: {ifdm(ctx)} (ID: {ifdm(ctx)})\n"
+            )
+            f.write(f"Команда: {ctx.command.name}\n\n")
+            traceback.print_exception(type(error), error, error.__traceback__, file=f)
+
+        print(
+            f"[ERROR] ID={error_id} | {type(error).__name__}: {error} (сохранено в {full_path})"
+        )
+
+        err_embed.description = (
+            f"Произошла неизвестная ошибка.\n"
+            f"Сообщите UUID разработчику.\n\n"
+            f"UUID: `{error_id}"
+        )
+        await ctx.reply(embed=err_embed, ephemeral=True)
 
     ### Triggers when an error occurs in a slash command ###
 
     @commands.Cog.listener()
     async def on_slash_command_error(
-        self: any, inter: disnake.ApplicationCommandInteraction, error: Exception
+        self, inter: disnake.ApplicationCommandInteraction, error: Exception
     ) -> None:
         """Handles errors in slash commands."""
 

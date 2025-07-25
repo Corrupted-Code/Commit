@@ -9,11 +9,9 @@ import disnake
 from disnake.ext import commands
 from disnake.ui import Button, View
 
-from config import OWNER_IDS
 from modules import errors as em
 
-### Check if user is bot owner ###
-
+OWNER_IDS = [int(i) for i in os.getenv("OWNER_IDS", "").replace(" ", "").split(",") if i]
 
 def is_bot_owner():
     """Check if the user is the bot owner."""
@@ -24,29 +22,17 @@ def is_bot_owner():
 
     return commands.check(predicate)
 
-
 class OwnerModule(commands.Cog):
     """Cog for bot owner commands"""
     def __init__(self, bot):
         self.bot = bot
-
-    ### Reboot command for bot owner ###
 
     @commands.command()
     @is_bot_owner()
     async def reboot(self, ctx):
         """Reboot command for bot owner"""
         bot = self.bot
-        resp_embed = bot.err_embed(ctx)
-        err_embed = bot.err_embed(ctx)
-
-        if ctx.author.id not in OWNER_IDS:
-            resp_embed.description = "У вас нет прав на перезагрузку бота."
-            return await ctx.send(embed=err_embed, delete_after=10)
-
-        resp_embed.title = "Подтверждение перезагрузки"
-        resp_embed.description = "Вы уверены что хотите перезапустить бота?"
-        resp_embed.color = disnake.Color.orange()
+        err_embed = bot.bot_embed(ctx)
 
         class ConfirmView(View):
             """View for confirmation buttons"""
@@ -113,6 +99,11 @@ class OwnerModule(commands.Cog):
                     await message.edit(embed=err_embed, view=None)
                 except (disnake.Forbidden, disnake.HTTPException, disnake.NotFound):
                     pass
+
+        resp_embed = self.bot.bot_embed(ctx)
+        resp_embed.title = "Подтверждение перезагрузки"
+        resp_embed.description = "Вы уверены что хотите перезапустить бота?"
+        resp_embed.color = disnake.Color.orange()
 
         message = await ctx.send(embed=resp_embed, view=ConfirmView())
 

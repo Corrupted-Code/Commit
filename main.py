@@ -1,17 +1,21 @@
 """This project is licensed under GPL-v3."""
 
-import json
 import os
-import asyncio
+import json
 import time
+import asyncio
 
 import disnake
-
 from disnake.ext import commands
 
-import config as cfg
+from dotenv import load_dotenv
 
-client = commands.Bot(command_prefix=cfg.PREFIX, intents=disnake.Intents.all())
+load_dotenv()
+
+PREFIX = os.getenv("PREFIX", "!")
+TOKEN = os.getenv("TOKEN")
+
+client = commands.Bot(command_prefix=PREFIX, intents=disnake.Intents.all())
 DATA_FILE = "forums.json"
 client.remove_command("help")
 
@@ -26,6 +30,7 @@ def bot_embed(inter):
         else client.user.display_avatar.url
     )
     err_embed.set_footer(text=f"{inter.author.name}", icon_url=user_avatar)
+    return err_embed
 
 
 def load_data():
@@ -176,8 +181,8 @@ for filename in os.listdir("./modules"):
         COG_NAME = f"modules.{filename[:-3]}"
         try:
             client.load_extension(COG_NAME)
-            print(f"Debug: Ког {filename} загружен")
+            print(f"DEBUG: Ког {filename} загружен")
         except (disnake.ext.commands.errors.ExtensionError, ImportError) as e:
             print(f"ERR: Ког {filename} не удалось загрузить: {e}")
 
-client.run(cfg.TOKEN)
+client.run(TOKEN)
