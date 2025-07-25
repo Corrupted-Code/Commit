@@ -1,10 +1,11 @@
-# This project is licensed under GPL-v3.
+"""This project is licensed under GPL-v3."""
 
-import disnake
 import json
 import os
 import asyncio
 import time
+
+import disnake
 
 from disnake.ext import commands
 
@@ -16,8 +17,19 @@ client.remove_command("help")
 
 start_time = time.time()
 
+def bot_embed(inter):
+    """Create a standard reponse embed"""
+    err_embed = disnake.Embed(title="Ошибка", color=disnake.Color.red())
+    user_avatar = (
+        inter.author.display_avatar.url
+        if inter.author.display_avatar
+        else client.user.display_avatar.url
+    )
+    err_embed.set_footer(text=f"{inter.author.name}", icon_url=user_avatar)
+
 
 def load_data():
+    """Load data from the JSON file"""
     if not os.path.exists(DATA_FILE):
         return {}
     with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -25,11 +37,13 @@ def load_data():
 
 
 def save_data(data):
+    """Save data to the JSON file"""
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 
 def ensure_defaults():
+    """Ensure that all guilds have the default data structure"""
     data = load_data()
     updated = False
     for guild in client.guilds:
@@ -38,7 +52,10 @@ def ensure_defaults():
             data[sid] = {
                 "forumchannels": [],
                 "closeAfter": 1,
-                "welcomeMessage": "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
+                "welcomeMessage": (
+                    "Hello! {thread_author}, welcome to your thread "
+                    "{thread_id} - {thread_name}"
+                ),
                 "delete_closed": True,
                 "welcome_enabled": True,
             }
@@ -63,6 +80,7 @@ def ensure_defaults():
 
 
 async def send_close_embed(thread, closer, closer_type="автоматически"):
+    """Send an embed when a thread is closed"""
     data = load_data()
     sid = str(thread.guild.id)
     auto_delete = data.get(sid, {}).get("delete_closed", True)
@@ -99,6 +117,7 @@ async def send_close_embed(thread, closer, closer_type="автоматическ
 
 
 async def check_inactivity_thread(thread_id: int):
+    """Check if a thread is inactive and close it if necessary"""
     await asyncio.sleep(5)
 
     while True:
@@ -135,7 +154,7 @@ async def check_inactivity_thread(thread_id: int):
             try:
                 await t.edit(locked=True, archived=True)
                 await send_close_embed(t, client.user, "автоматически")
-            except Exception:
+            except (disnake.Forbidden, disnake.HTTPException, disnake.NotFound):
                 pass
             del data[sid]["threads"][str(thread_id)]
             save_data(data)
@@ -149,15 +168,16 @@ client.ensure_defaults = ensure_defaults
 client.check_inactivity_thread = check_inactivity_thread
 client.send_close_embed = send_close_embed
 client.start_time = start_time
+client.bot_embed = bot_embed
 
 # Load cogs
 for filename in os.listdir("./modules"):
     if filename.endswith(".py"):
-        cog_name = f"modules.{filename[:-3]}"
+        COG_NAME = f"modules.{filename[:-3]}"
         try:
-            client.load_extension(cog_name)
+            client.load_extension(COG_NAME)
             print(f"Debug: Ког {filename} загружен")
-        except Exception as e:
+        except (disnake.ext.commands.errors.ExtensionError, ImportError) as e:
             print(f"ERR: Ког {filename} не удалось загрузить: {e}")
 
 client.run(cfg.TOKEN)

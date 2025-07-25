@@ -1,33 +1,38 @@
-import disnake
-import platform, time
+"""GPL-3.0 License"""
+import platform
+import time
 
+import disnake
 from disnake.ext import commands
+
 from config import VERSION
 
 
 class InfoModule(commands.Cog):
+    """Cog for providing information about the bot"""
     def __init__(self, bot):
         self.bot = bot
 
-    ### Slash command to get bot help ###
-
     @commands.slash_command(name="help", description="Информация о боте")
-    async def about(self, interaction: disnake.CommandInteraction):
+    async def help(self, interaction: disnake.CommandInteraction):
+        """Send a help message with available commands"""
         embed = disnake.Embed(
             title="Команды",
-            description="``!close`` - для закрытия вопроса/ветки в форуме которым я управляю.\n\nДля админов выберите все слеш команды от меня.",
+            description=(
+                "``!close`` - для закрытия вопроса/ветки в форуме которым я управляю.",
+                "\n\nДля админов выберите все слеш команды от меня."
+            ),
             color=disnake.Color.purple(),
         )
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey2",
             icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    ### Slash command to get bot info ###
-
     @commands.slash_command(name="info", description="Информация о боте")
     async def info(self, interaction: disnake.CommandInteraction):
+        """Send bot information including uptime, ping, and version"""
         uptime_seconds = int(time.time() - self.bot.start_time)
         hours, remainder = divmod(uptime_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -67,16 +72,15 @@ class InfoModule(commands.Cog):
         embed.add_field(name="💻 ОС", value=f"`{os_info}`", inline=False)
 
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey2",
             icon_url=self.bot.user.display_avatar.url,
         )
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    ### Slash command to get bot version ###
-
     @commands.slash_command(name="about", description="Информация о боте")
     async def about(self, interaction: disnake.CommandInteraction):
+        """Send bot information including version and author"""
         embed = disnake.Embed(
             title="О боте",
             description="Бот для управления вопросами в форумах для KDS.",
@@ -84,11 +88,12 @@ class InfoModule(commands.Cog):
         )
         embed.add_field(name="Версия", value=VERSION, inline=True)
         embed.set_footer(
-            text=f"Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey2",
             icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 def setup(bot):
+    """Setup function to connect InfoModule"""
     bot.add_cog(InfoModule(bot))

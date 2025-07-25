@@ -1,17 +1,22 @@
-# GPL-v3
+"""GPL-3.0 License"""
+
+import asyncio
+import os
+import subprocess
+import sys
 
 import disnake
-import sys, subprocess, os, asyncio
 from disnake.ext import commands
-from disnake.ui import View, Button
+from disnake.ui import Button, View
 
-from modules import errors as em
 from config import OWNER_IDS
+from modules import errors as em
 
 ### Check if user is bot owner ###
 
 
 def is_bot_owner():
+    """Check if the user is the bot owner."""
     def predicate(ctx):
         if ctx.author.id not in OWNER_IDS:
             raise em.NotOwner("Вы не разработчик бота.")
@@ -21,6 +26,7 @@ def is_bot_owner():
 
 
 class OwnerModule(commands.Cog):
+    """Cog for bot owner commands"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -29,43 +35,40 @@ class OwnerModule(commands.Cog):
     @commands.command()
     @is_bot_owner()
     async def reboot(self, ctx):
+        """Reboot command for bot owner"""
         bot = self.bot
-        errEmbed = disnake.Embed(title="Ошибка", color=disnake.Color.red())
-        user_avatar = (
-            ctx.author.display_avatar.url
-            if ctx.author.display_avatar
-            else self.bot.user.display_avatar.url
-        )
-        errEmbed.set_footer(text=f"{ctx.author.name}", icon_url=user_avatar)
+        resp_embed = bot.err_embed(ctx)
+        err_embed = bot.err_embed(ctx)
 
         if ctx.author.id not in OWNER_IDS:
-            errEmbed.description = "У вас нет прав на перезагрузку бота."
-            return await ctx.send(embed=errEmbed, delete_after=10)
+            resp_embed.description = "У вас нет прав на перезагрузку бота."
+            return await ctx.send(embed=err_embed, delete_after=10)
 
-        confirmEmbed = disnake.Embed(
-            title="Вы уверены что хотите перезапустить бота?",
-            color=disnake.Color.orange(),
-        )
-        confirmEmbed.set_footer(text=f"{ctx.author.name}", icon_url=user_avatar)
+        resp_embed.title = "Подтверждение перезагрузки"
+        resp_embed.description = "Вы уверены что хотите перезапустить бота?"
+        resp_embed.color = disnake.Color.orange()
 
         class ConfirmView(View):
+            """View for confirmation buttons"""
             def __init__(self):
                 super().__init__(timeout=30)
 
             @disnake.ui.button(label="Да", style=disnake.ButtonStyle.green)
-            # @is_bot_owner() ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
+            # @is_bot_owner()
+            # ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
             async def yes(
-                self, button: Button, interaction: disnake.MessageInteraction
+                self, _: Button, interaction: disnake.MessageInteraction
             ):
+                """Yes button handler"""
                 if interaction.author.id not in OWNER_IDS:
-                    errEmbed.description = (
+                    err_embed.description = (
                         "У вас нет прав на выполнение этого действия."
                     )
                     return await interaction.response.send_message(
-                        embed=errEmbed, ephemeral=True
+                        embed=err_embed, ephemeral=True
                     )
-                errEmbed.title = "Перезагрузка..."
-                await interaction.response.edit_message(embed=errEmbed, view=None)
+                err_embed.title = "Перезагрузка..."
+                await interaction.response.edit_message(embed=err_embed, view=None)
 
                 print("DEBUG: Был вызван перезапуск")
 
@@ -86,31 +89,34 @@ class OwnerModule(commands.Cog):
                 os.execv(sys.executable, [sys.executable] + sys.argv)
 
             @disnake.ui.button(label="Нет", style=disnake.ButtonStyle.red)
-            # @is_bot_owner() ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
-            async def no(self, button: Button, interaction: disnake.MessageInteraction):
+            # @is_bot_owner()
+            # ### Нельзя это цеплять на кнопки, т.к. я не видел листенера для ошибок кнопок ###
+            async def no(self, _: Button, interaction: disnake.MessageInteraction):
+                """No button handler"""
                 if interaction.author.id not in OWNER_IDS:
-                    errEmbed.description = (
+                    err_embed.description = (
                         "У вас нет прав на выполнение этого действия."
                     )
                     return await interaction.response.send_message(
-                        embed=errEmbed, ephemeral=True
+                        embed=err_embed, ephemeral=True
                     )
 
                 await interaction.message.delete()
                 try:
                     await ctx.message.delete()
-                except:
+                except (disnake.Forbidden, disnake.HTTPException, disnake.NotFound):
                     pass
 
             async def on_timeout(self):
                 try:
-                    errEmbed.title = "⏳ Время ожидания истекло."
-                    await message.edit(embed=errEmbed, view=None)
-                except:
+                    err_embed.title = "⏳ Время ожидания истекло."
+                    await message.edit(embed=err_embed, view=None)
+                except (disnake.Forbidden, disnake.HTTPException, disnake.NotFound):
                     pass
 
-        message = await ctx.send(embed=confirmEmbed, view=ConfirmView())
+        message = await ctx.send(embed=resp_embed, view=ConfirmView())
 
 
 def setup(bot):
+    """Setup function to connect OwnerModule """
     bot.add_cog(OwnerModule(bot))

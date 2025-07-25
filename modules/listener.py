@@ -1,17 +1,20 @@
-import disnake
+"""GPL-3.0 License"""
+
 import datetime
+
+import disnake
 
 from disnake.ext import commands
 
 
 class ListenerModule(commands.Cog):
+    """Cog for handling various events in the bot"""
     def __init__(self, bot):
         self.bot = bot
 
-    ### Triggers when bot is ready ###
-
     @commands.Cog.listener()
     async def on_ready(self):
+        """Called when the bot is ready and connected to Discord"""
         self.bot.ensure_defaults()
         await self.bot.change_presence(
             activity=disnake.Activity(
@@ -23,24 +26,22 @@ class ListenerModule(commands.Cog):
         print("------------")
 
         data = self.bot.load_data()
-        for sid, d in data.items():
+        for _, d in data.items():
             if "threads" in d:
                 for tid in list(d["threads"].keys()):
                     self.bot.loop.create_task(
                         self.bot.check_inactivity_thread(int(tid))
                     )
 
-    ### Triggers when bot gets added to server ###
-
     @commands.Cog.listener()
     async def on_guild_join(self, guild: disnake.Guild):
+        """Called when the bot joins a new guild"""
         print("DEBUG: Bot has been added to a new guild:", guild.name)
         self.bot.ensure_defaults()
 
-    ### Triggers message is sent ###
-
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
+        """Called when a message is sent in a guild or DM"""
         if message.author.bot:
             return
 
@@ -60,10 +61,9 @@ class ListenerModule(commands.Cog):
 
         # await self.bot.process_commands(message)
 
-    ### Triggers thread creates (in moderated forums) ###
-
     @commands.Cog.listener()
     async def on_thread_create(self, thread: disnake.Thread):
+        """Called when a thread is created in a forum channel"""
         data = self.bot.load_data()
         sid = str(thread.guild.id)
         if (
@@ -78,16 +78,16 @@ class ListenerModule(commands.Cog):
                 "welcomeMessage",
                 "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}",
             )
-            welcomeFormatted = welcome.format(
+            welcome_formatted = welcome.format(
                 thread_author=thread.owner.mention,
                 thread_id=thread.id,
                 thread_name=thread.name,
             )
             embed = disnake.Embed(
-                description=welcomeFormatted, color=disnake.Color.purple()
+                description=welcome_formatted, color=disnake.Color.purple()
             )
             embed.set_footer(
-                text=f"Made with ❤️ by PrivateKey2",
+                text="Made with ❤️ by PrivateKey2",
                 icon_url=self.bot.user.display_avatar.url,
             )
             await thread.send(embed=embed)
@@ -109,4 +109,5 @@ class ListenerModule(commands.Cog):
 
 
 def setup(bot):
+    """Setup function to connect ListenerModule"""
     bot.add_cog(ListenerModule(bot))

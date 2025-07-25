@@ -1,3 +1,5 @@
+"""Example configuration file for CommitBot"""
+
 TOKEN = ""
 PREFIX = ""
 VERSION = ""
