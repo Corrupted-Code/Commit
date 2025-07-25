@@ -33,10 +33,8 @@ class ErrorsModule(commands.Cog):
 
         err_embed = self.bot.bot_embed(ctx)
         if isinstance(error, NotOwner):
-
             err_embed.description = "Вы не разработчик бота."
             return await ctx.reply(embed=err_embed, delete_after=40)
-        
         error_id = str(uuid.uuid4())[:8]
         date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"error_{error_id}_{date_str}.log"

@@ -75,7 +75,10 @@ def ensure_defaults():
             if "welcomeMessage" not in data[sid]:
                 data[sid][
                     "welcomeMessage"
-                ] = "Hello! {thread_author}, welcome to your thread {thread_id} - {thread_name}"
+                ] = (
+                    "Hello! {thread_author}, welcome to your thread "
+                    "{thread_id} - {thread_name}"
+                )
                 updated = True
             if "delete_closed" not in data[sid]:
                 data[sid]["delete_closed"] = True
