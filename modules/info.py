@@ -25,7 +25,7 @@ class InfoModule(commands.Cog):
             color=disnake.Color.purple(),
         )
         embed.set_footer(
-            text="Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey",
             icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -72,7 +72,7 @@ class InfoModule(commands.Cog):
         embed.add_field(name="💻 ОС", value=f"`{os_info}`", inline=False)
 
         embed.set_footer(
-            text="Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey",
             icon_url=self.bot.user.display_avatar.url,
         )
 
@@ -88,7 +88,7 @@ class InfoModule(commands.Cog):
         )
         embed.add_field(name="Версия", value=VERSION, inline=True)
         embed.set_footer(
-            text="Made with ❤️ by PrivateKey2",
+            text="Made with ❤️ by PrivateKey",
             icon_url=self.bot.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)

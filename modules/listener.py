@@ -87,7 +87,7 @@ class ListenerModule(commands.Cog):
                 description=welcome_formatted, color=disnake.Color.purple()
             )
             embed.set_footer(
-                text="Made with ❤️ by PrivateKey2",
+                text="Made with ❤️ by PrivateKey",
                 icon_url=self.bot.user.display_avatar.url,
             )
             await thread.send(embed=embed)

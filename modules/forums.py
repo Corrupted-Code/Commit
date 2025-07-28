@@ -266,11 +266,10 @@ class ForumsModule(commands.Cog):
                 ]
                 super().__init__(title="Настройка приветствия", components=components)
 
-            async def callback(self, modal_inter: disnake.ModalInteraction):
-                """Handle the modal submission"""
-                msg = modal_inter.text_values["welcome_msg"]
+            async def callback(self, interaction: disnake.ModalInteraction):
+                msg = interaction.text_values["welcome_msg"]
                 data = self.bot.load_data()
-                sid = str(modal_inter.guild.id)
+                sid = str(interaction.guild.id)
                 if sid not in data:
                     data[sid] = {
                         "forumchannels": [],
@@ -281,12 +280,13 @@ class ForumsModule(commands.Cog):
                     data[sid]["welcomeMessage"] = msg
                 self.bot.save_data(data)
 
-                resp_embed = self.bot.bot_embed(modal_inter)
+                resp_embed = self.bot.bot_embed(interaction)
                 resp_embed.title = "Приветственное сообщение обновлено"
                 resp_embed.description = f"Приветственное сообщение:\n```{msg}```"
                 resp_embed.color = disnake.Color.purple()
 
-                await modal_inter.response.send_message(embed=resp_embed, ephemeral=True)
+                await interaction.response.send_message(embed=resp_embed, ephemeral=True)
+
 
         await interaction.response.send_modal(modal=WelcomeModal())
 
@@ -309,9 +309,9 @@ class ForumsModule(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
         data = self.bot.load_data()
-        sid = str(interaction.guild.id)
-        if sid not in data:
-            data[sid] = {
+        servid = str(interaction.guild.id)
+        if servid not in data:
+            data[servid] = {
                 "forumchannels": [],
                 "closeAfter": 1,
                 "welcomeMessage": (
@@ -321,7 +321,7 @@ class ForumsModule(commands.Cog):
                 "delete_closed": value,
             }
         else:
-            data[sid]["delete_closed"] = value
+            data[servid]["delete_closed"] = value
         self.bot.save_data(data)
         if value:
             value = "включено"
