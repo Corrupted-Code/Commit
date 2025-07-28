@@ -35,6 +35,14 @@ class ErrorsModule(commands.Cog):
         if isinstance(error, NotOwner):
             err_embed.description = "Вы не разработчик бота."
             return await ctx.reply(embed=err_embed, delete_after=40)
+
+        if isinstance(error, commands.CommandInvokeError) and isinstance(error.original, disnake.Forbidden):
+            err_embed.description = "У меня недостаточно прав для написания сообщения в этом канале."
+            try:
+                return await ctx.reply(embed=err_embed, delete_after=40)
+            except disnake.Forbidden:
+                return
+        
         error_id = str(uuid.uuid4())[:8]
         date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"error_{error_id}_{date_str}.log"
@@ -61,9 +69,16 @@ class ErrorsModule(commands.Cog):
         err_embed.description = (
             f"Произошла неизвестная ошибка.\n"
             f"Сообщите UUID разработчику.\n\n"
-            f"UUID: `{error_id}"
+            f"UUID: `{error_id}`"
         )
-        await ctx.reply(embed=err_embed, ephemeral=True)
+        try:
+            await ctx.author.send(embed=err_embed, ephemeral=True)
+        except disnake.Forbidden:
+            err_embed.description = (
+                f"Произошла неизвестная ошибка.\n"
+                f"UUID: `{error_id}`"
+            )
+            return await ctx.reply(embed=err_embed, delete_after=40)
 
     ### Triggers when an error occurs in a slash command ###
 
@@ -117,7 +132,7 @@ class ErrorsModule(commands.Cog):
         err_embed.description = (
             f"Произошла неизвестная ошибка.\n"
             f"Сообщите UUID разработчику.\n\n"
-            f"UUID: `{error_id}"
+            f"UUID: `{error_id}`"
         )
         try:
             await inter.response.send_message(embed=err_embed, ephemeral=True)
